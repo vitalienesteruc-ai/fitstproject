@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YouTube Preview Site</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <header>
+    <h1>YouTube Video Preview</h1>
+    <p>Enter YouTube video IDs to preview them below.</p>
+  </header>
+
+  <main>
+    <section class="controls">
+      <label for="videoId">YouTube video ID</label>
+      <input id="videoId" placeholder="e.g., dQw4w9WgXcQ" />
+      <button id="addButton">Add Preview</button>
+    </section>
+
+    <section class="preview">
+      <div class="player" id="player">
+        <div class="empty">Select a video to play</div>
+      </div>
+    </section>
+
+    <section class="gallery" id="gallery">
+      <!-- thumbnails are inserted here -->
+    </section>
+  </main>
+
+  <footer>
+    <p>Built as a free static site. No analytics, no fees.</p>
+  </footer>
+
+  <script src="script.js"></script>
+</body>
+</html>
