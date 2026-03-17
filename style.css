@@ -79,6 +79,12 @@ main {
   transition: background 160ms ease, transform 160ms ease;
 }
 
+.controls .hint {
+  margin: 0.5rem 0 0;
+  font-size: 0.9rem;
+  color: rgba(203, 213, 225, 0.65);
+}
+
 .controls button:hover {
   background: rgba(56, 189, 248, 0.18);
   transform: translateY(-1px);

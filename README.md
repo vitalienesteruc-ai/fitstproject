@@ -9,11 +9,16 @@ A simple free static website that lets you add YouTube video IDs and preview the
 3. Click **Search & Add** or press **Enter**.
 4. Click a thumbnail to load the video preview.
 
-### How name search works
+### How name search works (and how to get better results)
 
 If you enter a text query (not a video ID), the site embeds YouTube’s search results playlist for that phrase.
 
-This approach doesn’t require an API key or any restrictions.
+For more accurate results:
+- Use the full video title (copy/paste it from YouTube). 
+- Include the channel name or other unique keywords.
+- If search results are still not right, use the video ID directly (it always finds the exact video).
+
+This method doesn’t require an API key or any restrictions.
 
 ## Run locally
 
