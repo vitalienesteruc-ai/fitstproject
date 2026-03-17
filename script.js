@@ -34,6 +34,27 @@ function makeEmbedUrl(id) {
   return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
 }
 
+async function checkEmbeddable(id) {
+  if (!YOUTUBE_API_KEY) {
+    return true; // assume embeddable if API key is not configured
+  }
+
+  const params = new URLSearchParams({
+    part: 'status',
+    id,
+    key: YOUTUBE_API_KEY,
+  });
+
+  const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`);
+  if (!response.ok) {
+    return true; // don't block playback on API errors
+  }
+
+  const json = await response.json();
+  const item = json.items?.[0];
+  return item?.status?.embeddable !== false;
+}
+
 async function searchVideoId(query) {
   if (!YOUTUBE_API_KEY) {
     throw new Error('YouTube API key is missing. Set YOUTUBE_API_KEY in script.js.');
@@ -65,8 +86,25 @@ function clearPlayer() {
   player.innerHTML = `<div class="empty">Select a video to play</div>`;
 }
 
-function showVideo(id) {
+async function showVideo(id) {
   const youtubeUrl = `https://www.youtube.com/watch?v=${id}`;
+
+  // If the video can’t be embedded (owner disabled it), show a helpful message.
+  const embeddable = await checkEmbeddable(id);
+  if (!embeddable) {
+    player.innerHTML = `
+      <div class="empty">
+        This video cannot be played here (embedding is disabled).
+        <div class="player-footer">
+          <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
+            Open on YouTube
+          </a>
+        </div>
+      </div>
+    `;
+    return;
+  }
+
   player.innerHTML = `
     <iframe
       title="YouTube preview"
@@ -103,8 +141,8 @@ function renderGallery(ids) {
       </div>
     `;
 
-    card.addEventListener('click', () => {
-      showVideo(id);
+    card.addEventListener('click', async () => {
+      await showVideo(id);
       // scroll to player on mobile
       player.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -143,7 +181,7 @@ async function addVideoId(input) {
   setStoredIds(ids.slice(0, 60)); // keep a reasonably small history
   renderGallery(ids);
   videoIdInput.value = '';
-  showVideo(videoId);
+  await showVideo(videoId);
 }
 
 addButton.addEventListener('click', () => addVideoId(videoIdInput.value));
