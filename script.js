@@ -3,11 +3,15 @@ const addButton = document.getElementById('addButton');
 const gallery = document.getElementById('gallery');
 const player = document.getElementById('player');
 
-// ⚠️ To search by name, set your YouTube Data API v3 key here:
-//   https://developers.google.com/youtube/v3/getting-started
-const YOUTUBE_API_KEY = 'AIzaSyAl3gseOihzDlXyI4yi1JYD1H68rfM9m68';
+const STORAGE_KEY = 'yt-preview-items';
 
-const STORAGE_KEY = 'yt-preview-ids';
+function makeSearchEmbedUrl(query) {
+  return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+}
+
+function isSearchEntry(value) {
+  return value.startsWith('search:');
+}
 
 function getStoredIds() {
   try {
@@ -34,47 +38,17 @@ function makeEmbedUrl(id) {
   return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
 }
 
-async function checkEmbeddable(id) {
-  if (!YOUTUBE_API_KEY) {
-    return true; // assume embeddable if API key is not configured
-  }
-
-  const params = new URLSearchParams({
-    part: 'status',
-    id,
-    key: YOUTUBE_API_KEY,
-  });
-
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/videos?${params}`);
-  if (!response.ok) {
-    return true; // don't block playback on API errors
-  }
-
-  const json = await response.json();
-  const item = json.items?.[0];
-  return item?.status?.embeddable !== false;
+function makeSearchUrl(query) {
+  return `https://www.youtube.com/results?search_query=${encodeURIComponent(query)}`;
 }
 
-async function searchVideoId(query) {
-  if (!YOUTUBE_API_KEY) {
-    throw new Error('YouTube API key is missing. Set YOUTUBE_API_KEY in script.js.');
-  }
+function makeSearchEmbedUrl(query) {
+  return `https://www.youtube.com/embed?listType=search&list=${encodeURIComponent(query)}`;
+}
 
-  const params = new URLSearchParams({
-    part: 'snippet',
-    type: 'video',
-    q: query,
-    maxResults: '1',
-    key: YOUTUBE_API_KEY,
-  });
-
-  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
-  if (!response.ok) {
-    throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
-  }
-
-  const json = await response.json();
-  return json.items?.[0]?.id?.videoId || null;
+function isValidVideoId(value) {
+  // YouTube IDs are typically 11 characters, allow a loose match.
+  return /^[A-Za-z0-9_-]{8,20}$/.test(value.trim());
 }
 
 function isValidVideoId(value) {
@@ -86,29 +60,19 @@ function clearPlayer() {
   player.innerHTML = `<div class="empty">Select a video to play</div>`;
 }
 
-async function showVideo(id) {
-  const youtubeUrl = `https://www.youtube.com/watch?v=${id}`;
+async function showVideo(entry) {
+  const isSearch = isSearchEntry(entry);
+  const value = isSearch ? entry.slice('search:'.length) : entry;
+  const youtubeUrl = isSearch
+    ? makeSearchUrl(value)
+    : `https://www.youtube.com/watch?v=${value}`;
 
-  // If the video can’t be embedded (owner disabled it), show a helpful message.
-  const embeddable = await checkEmbeddable(id);
-  if (!embeddable) {
-    player.innerHTML = `
-      <div class="empty">
-        This video cannot be played here (embedding is disabled).
-        <div class="player-footer">
-          <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
-            Open on YouTube
-          </a>
-        </div>
-      </div>
-    `;
-    return;
-  }
+  const embedUrl = isSearch ? makeSearchEmbedUrl(value) : makeEmbedUrl(value);
 
   player.innerHTML = `
     <iframe
       title="YouTube preview"
-      src="${makeEmbedUrl(id)}"
+      src="${embedUrl}"
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen
     ></iframe>
@@ -116,7 +80,7 @@ async function showVideo(id) {
       <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
         Open on YouTube
       </a>
-      <span class="player-note">If you see a player error, this link opens the video on YouTube.</span>
+      <span class="player-note">If the video doesn’t load here, use the link above to open it directly.</span>
     </div>
   `;
 }
@@ -129,20 +93,26 @@ function renderGallery(ids) {
     return;
   }
 
-  ids.forEach((id) => {
+  ids.forEach((item) => {
     const card = document.createElement('button');
     card.type = 'button';
     card.className = 'card';
+
+    const isSearch = isSearchEntry(item);
+    const label = isSearch ? item.slice('search:'.length) : item;
+
     card.innerHTML = `
-      <img loading="lazy" src="${makeThumbnailUrl(id)}" alt="YouTube thumbnail for ${id}" />
+      <div class="card-thumb">
+        ${isSearch ? '<div class="search-placeholder">Search</div>' : `<img loading="lazy" src="${makeThumbnailUrl(label)}" alt="YouTube thumbnail for ${label}" />`}
+      </div>
       <div class="meta">
-        <div class="id">${id}</div>
-        <div class="label">Click to play</div>
+        <div class="id">${label}</div>
+        <div class="label">${isSearch ? 'Search term' : 'Click to play'}</div>
       </div>
     `;
 
     card.addEventListener('click', async () => {
-      await showVideo(id);
+      await showVideo(item);
       // scroll to player on mobile
       player.scrollIntoView({ behavior: 'smooth', block: 'center' });
     });
@@ -157,31 +127,20 @@ async function addVideoId(input) {
     return;
   }
 
-  let videoId = query;
-  if (!isValidVideoId(query)) {
-    try {
-      videoId = await searchVideoId(query);
-    } catch (err) {
-      window.alert(err.message);
-      return;
-    }
-
-    if (!videoId) {
-      window.alert('No videos found for that search term. Try a different phrase.');
-      return;
-    }
-  }
+  const isId = isValidVideoId(query);
+  const entry = isId ? query : `search:${query}`;
 
   const ids = getStoredIds();
-  if (ids.includes(videoId)) {
+  if (ids.includes(entry)) {
+    await showVideo(entry);
     return;
   }
 
-  ids.unshift(videoId);
+  ids.unshift(entry);
   setStoredIds(ids.slice(0, 60)); // keep a reasonably small history
   renderGallery(ids);
   videoIdInput.value = '';
-  await showVideo(videoId);
+  await showVideo(entry);
 }
 
 addButton.addEventListener('click', () => addVideoId(videoIdInput.value));

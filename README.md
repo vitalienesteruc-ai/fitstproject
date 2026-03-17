@@ -9,14 +9,11 @@ A simple free static website that lets you add YouTube video IDs and preview the
 3. Click **Search & Add** or press **Enter**.
 4. Click a thumbnail to load the video preview.
 
-### Enabling search by name
+### How name search works
 
-This feature requires a **YouTube Data API v3 key**. Set it in the `YOUTUBE_API_KEY` constant at the top of `script.js`.
+If you enter a text query (not a video ID), the site embeds YouTube’s search results playlist for that phrase.
 
-- To get a key, follow:
-  1. https://developers.google.com/youtube/v3/getting-started
-  2. Create a project, enable the YouTube Data API, and create an API key.
-  3. Paste the key into `YOUTUBE_API_KEY` in `script.js`.
+This approach doesn’t require an API key or any restrictions.
 
 ## Run locally
 
