@@ -102,6 +102,38 @@ main {
   background: rgba(17, 24, 39, 0.7);
   border: 1px solid rgba(203, 213, 225, 0.1);
   position: relative;
+  display: flex;
+  flex-direction: column;
+}
+
+.player-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.6rem 0.75rem;
+  background: rgba(17, 24, 39, 0.9);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.player-header-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: rgba(203, 213, 225, 0.85);
+}
+
+.player-header-link {
+  background: rgba(56, 189, 248, 0.12);
+  border: 1px solid rgba(56, 189, 248, 0.25);
+  padding: 0.35rem 0.75rem;
+  border-radius: 0.65rem;
+  color: rgba(56, 189, 248, 0.92);
+  text-decoration: none;
+  font-weight: 600;
+  transition: background 160ms ease;
+}
+
+.player-header-link:hover {
+  background: rgba(56, 189, 248, 0.18);
 }
 
 .player .empty {

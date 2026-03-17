@@ -70,6 +70,12 @@ async function showVideo(entry) {
   const embedUrl = isSearch ? makeSearchEmbedUrl(value) : makeEmbedUrl(value);
 
   player.innerHTML = `
+    <div class="player-header">
+      <div class="player-header-title">Preview</div>
+      <a class="player-header-link" href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
+        Open on YouTube
+      </a>
+    </div>
     <iframe
       title="YouTube preview"
       src="${embedUrl}"
@@ -77,10 +83,7 @@ async function showVideo(entry) {
       allowfullscreen
     ></iframe>
     <div class="player-footer">
-      <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
-        Open on YouTube
-      </a>
-      <span class="player-note">If the video doesn’t load here, use the link above to open it directly.</span>
+      <span class="player-note">If the video fails to play (Error 153), click the button above to open it on YouTube.</span>
     </div>
   `;
 }
