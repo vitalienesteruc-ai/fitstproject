@@ -5,9 +5,18 @@ A simple free static website that lets you add YouTube video IDs and preview the
 ## Usage
 
 1. Open `index.html` in a browser.
-2. Enter a YouTube *video ID* (e.g., `dQw4w9WgXcQ`).
-3. Click **Add Preview** or press **Enter**.
+2. Enter a YouTube *video name* (e.g., `never gonna give you up`) or paste a YouTube video ID (e.g., `dQw4w9WgXcQ`).
+3. Click **Search & Add** or press **Enter**.
 4. Click a thumbnail to load the video preview.
+
+### Enabling search by name
+
+This feature requires a **YouTube Data API v3 key**. Set it in the `YOUTUBE_API_KEY` constant at the top of `script.js`.
+
+- To get a key, follow:
+  1. https://developers.google.com/youtube/v3/getting-started
+  2. Create a project, enable the YouTube Data API, and create an API key.
+  3. Paste the key into `YOUTUBE_API_KEY` in `script.js`.
 
 ## Run locally
 

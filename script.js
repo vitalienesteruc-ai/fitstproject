@@ -3,6 +3,10 @@ const addButton = document.getElementById('addButton');
 const gallery = document.getElementById('gallery');
 const player = document.getElementById('player');
 
+// ⚠️ To search by name, set your YouTube Data API v3 key here:
+//   https://developers.google.com/youtube/v3/getting-started
+const YOUTUBE_API_KEY = 'AIzaSyAl3gseOihzDlXyI4yi1JYD1H68rfM9m68';
+
 const STORAGE_KEY = 'yt-preview-ids';
 
 function getStoredIds() {
@@ -30,6 +34,28 @@ function makeEmbedUrl(id) {
   return `https://www.youtube.com/embed/${id}?autoplay=1&rel=0&modestbranding=1`;
 }
 
+async function searchVideoId(query) {
+  if (!YOUTUBE_API_KEY) {
+    throw new Error('YouTube API key is missing. Set YOUTUBE_API_KEY in script.js.');
+  }
+
+  const params = new URLSearchParams({
+    part: 'snippet',
+    type: 'video',
+    q: query,
+    maxResults: '1',
+    key: YOUTUBE_API_KEY,
+  });
+
+  const response = await fetch(`https://www.googleapis.com/youtube/v3/search?${params}`);
+  if (!response.ok) {
+    throw new Error(`YouTube API error: ${response.status} ${response.statusText}`);
+  }
+
+  const json = await response.json();
+  return json.items?.[0]?.id?.videoId || null;
+}
+
 function isValidVideoId(value) {
   // YouTube IDs are typically 11 characters, allow a loose match.
   return /^[A-Za-z0-9_-]{8,20}$/.test(value.trim());
@@ -54,7 +80,7 @@ function renderGallery(ids) {
   gallery.innerHTML = '';
 
   if (ids.length === 0) {
-    gallery.innerHTML = `<div class="empty">No videos added yet. Add a YouTube video ID above to start.</div>`;
+    gallery.innerHTML = `<div class="empty">No videos added yet. Search by name or paste a video ID above to start.</div>`;
     return;
   }
 
@@ -80,23 +106,37 @@ function renderGallery(ids) {
   });
 }
 
-function addVideoId(id) {
-  const normalized = id.trim();
-  if (!isValidVideoId(normalized)) {
-    window.alert('Please enter a valid YouTube video ID (e.g., dQw4w9WgXcQ).');
+async function addVideoId(input) {
+  const query = input.trim();
+  if (!query) {
     return;
+  }
+
+  let videoId = query;
+  if (!isValidVideoId(query)) {
+    try {
+      videoId = await searchVideoId(query);
+    } catch (err) {
+      window.alert(err.message);
+      return;
+    }
+
+    if (!videoId) {
+      window.alert('No videos found for that search term. Try a different phrase.');
+      return;
+    }
   }
 
   const ids = getStoredIds();
-  if (ids.includes(normalized)) {
+  if (ids.includes(videoId)) {
     return;
   }
 
-  ids.unshift(normalized);
+  ids.unshift(videoId);
   setStoredIds(ids.slice(0, 60)); // keep a reasonably small history
   renderGallery(ids);
   videoIdInput.value = '';
-  showVideo(normalized);
+  showVideo(videoId);
 }
 
 addButton.addEventListener('click', () => addVideoId(videoIdInput.value));
