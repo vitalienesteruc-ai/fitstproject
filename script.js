@@ -66,6 +66,7 @@ function clearPlayer() {
 }
 
 function showVideo(id) {
+  const youtubeUrl = `https://www.youtube.com/watch?v=${id}`;
   player.innerHTML = `
     <iframe
       title="YouTube preview"
@@ -73,6 +74,12 @@ function showVideo(id) {
       allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
       allowfullscreen
     ></iframe>
+    <div class="player-footer">
+      <a href="${youtubeUrl}" target="_blank" rel="noopener noreferrer">
+        Open on YouTube
+      </a>
+      <span class="player-note">If you see a player error, this link opens the video on YouTube.</span>
+    </div>
   `;
 }
 
