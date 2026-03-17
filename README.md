@@ -39,6 +39,18 @@ Then open http://localhost:8000 in your browser.
 
 ## Auto-deploy via GitHub Actions
 
-If you push this repo to GitHub and enable GitHub Pages, the included GitHub Actions workflow will automatically deploy the `main` branch to the `gh-pages` branch.
+This repo includes a GitHub Actions workflow that deploys the `main` branch to the `gh-pages` branch on every push.
 
-Just push to `main` and the site will update within a minute or two.
+### GitHub Pages URL
+After enabling Pages (branch: `gh-pages`, folder: `/`), the site should be available at:
+
+```
+https://vitalienesteruc-ai.github.io/fitstproject/
+```
+
+It can take a minute or two for changes to appear.
+
+### Confirm deployment
+1. Open the **Actions** tab in your repo.
+2. Verify the **Deploy to GitHub Pages** workflow ran successfully.
+3. If it failed, open the workflow details to see errors.
